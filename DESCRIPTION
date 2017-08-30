@@ -1,0 +1,21 @@
+Package: BayesMDL
+Type: Package
+Title: Bayesian MDL for Multiple Changepoint Detection
+Version: 0.9.3
+Author: Yingbo Li
+Maintainer: Yingbo Li <carolli13@gmail.com>
+Description: This package implements the Bayesian MDL Multiple Changepoint 
+  Detection methods, which can be applied to univariate and bivariate time series
+  data and can accommodate metadata if exist. It can detect change in series means,
+  and also linear slopes.
+License: GPL(>= 2)
+Depends: R (>= 2.14.0)
+Imports: graphics,
+         grDevices,
+         MASS, 
+         mvtnorm, 
+         stats,
+         utils
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1

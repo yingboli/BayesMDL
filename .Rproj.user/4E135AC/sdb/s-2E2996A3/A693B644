@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "## Build-check-install the bmdlr package\ndevtools::document();\ndevtools::build();\ndevtools::check();\ndevtools::build();\ndevtools::install();\ndevtools::load_all();\n\n###########################################################\nn = 60;\nt = 1:n;\n\nx = cbind(sin(2 * pi / 12 * t), cos(2 * pi / 12 * t),\n      sin(2 * pi / 12 * t * 2), cos(2 * pi / 12 * t * 2),\n      sin(2 * pi / 12 * t * 3), cos(2 * pi / 12 * t * 3)) %*% 1:6;\n\n\n\nts.plot(x)\n",
+    "created" : 1504063597704.000,
+    "dirty" : true,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1423359434",
+    "id" : "A693B644",
+    "lastKnownWriteTime" : 1502169613,
+    "last_content_update" : 1504069553990,
+    "path" : "~/Dropbox/Research/2014 Joint Tmax and Tmin/Mypackage_bmdlr/080717_test_bmdlr_package.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

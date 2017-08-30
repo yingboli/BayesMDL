@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "\\name{loc2dirac}\n\\alias{loc2dirac}\n\\title{\nConvert a Location Vector to a 0-1 Indicator Vector\n}\n\\description{\nConvert a location vector to a 0-1 indicator vector, such that the corresponding entries in these locations are 1.\n}\n\\usage{\nloc2dirac(loc, N)\n}\n\\arguments{\n  \\item{loc}{\na integer vector, length does not exceed \\code{N}.\n}\n  \\item{N}{\nthe length of the resulting indicator vector.\n}\n}\n%\\details{\n%%  ~~ If necessary, more details than the description above ~~\n%}\n\\value{\na 0-1 indicator vector of length \\code{N}.\n}\n%\\references{\n%% ~put references to the literature/web site here ~\n%}\n\\author{\nYingbo Li\n}\n",
+    "created" : 1504069297352.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3814863957",
+    "id" : "E8E4955B",
+    "lastKnownWriteTime" : 1438281781,
+    "last_content_update" : 1438281781,
+    "path" : "~/Dropbox/Research/2014 Joint Tmax and Tmin/Mypackage_BayesMDL/BayesMDL/man/loc2dirac.Rd",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_doc"
+}

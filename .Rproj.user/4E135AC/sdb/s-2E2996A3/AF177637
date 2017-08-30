@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "Package: BayesMDL\nType: Package\nTitle: Bayesian MDL for Multiple Changepoint Detection\nVersion: 0.9.3\nAuthor: Yingbo Li\nMaintainer: Yingbo Li <carolli13@gmail.com>\nDescription: This package implements the Bayesian MDL Multiple Changepoint \n  Detection methods, which can be applied to univariate and bivariate time series\n  data and can accommodate metadata if exist. It can detect change in series means,\n  and also linear slopes.\nLicense: GPL(>= 2)\nDepends: R (>= 2.14.0)\nImports: graphics,\n         grDevices,\n         MASS, \n         mvtnorm, \n         stats,\n         utils\nEncoding: UTF-8\nLazyData: true\nRoxygenNote: 6.0.1\n",
+    "created" : 1504069580070.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3500245999",
+    "id" : "AF177637",
+    "lastKnownWriteTime" : 1504062986,
+    "last_content_update" : 1504062986,
+    "path" : "~/Dropbox/Research/2014 Joint Tmax and Tmin/Mypackage_bmdlr/BayesMDL/DESCRIPTION",
+    "project_path" : "DESCRIPTION",
+    "properties" : {
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "dcf"
+}
