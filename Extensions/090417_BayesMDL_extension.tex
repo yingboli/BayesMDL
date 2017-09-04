@@ -125,22 +125,46 @@
 \subsection{Linear model}
 
 Given a changepoint model $\boldsymbol{\eta}$, the sampling distribution 
-\eqref{eq:likelihood1} has the regression representation
+has the regression representation
 \begin{equation}
 \label{eq:likelihood3}
-\mathbf{X}_{1:N} = \mathbf{A}_{1:N} \mathbf{s} + 
-\mathbf{D}_{1:N}\boldsymbol\mu + \boldsymbol\epsilon_{1:N},
+\mathbf{X}_{1:N} = \mathbf{A}_{1:n} \mathbf{s} + 
+\mathbf{D}_{1:N}\boldsymbol\mu + \boldsymbol\epsilon_{1:n},
 \end{equation}
-with $\mathbf{A}_{1:N}\in \mathbb{R}^{N \times T}$ and 
-$\mathbf{D}_{1:N} \in \mathbb{R}^{N \times m}$ as seasonal and regime 
+with $\mathbf{A}_{1:n}\in \mathbb{R}^{n \times T}$ and 
+$\mathbf{D}_{1:n} \in \mathbb{R}^{n \times m}$ as seasonal and regime 
 indicator matrices, respectively:
 \begin{align*}
-&\left[ \mathbf{A}_{1:N} \right]_{t,v} = 
+&\left[ \mathbf{A}_{1:n} \right]_{t,v} = 
 	\mathbf{1}( \text{time } t \text{ is in season } v ), ~~~ v = 1,  \ldots, T,\\
-&\left[ \mathbf{D}_{1:N} \right]_{t,r-1} = 
+&\left[ \mathbf{D}_{1:n} \right]_{t,r-1} = 
 	\mathbf{1}( \text{time } t \text{ is in regime } r ), ~~~ r = 2, \ldots, m + 1,
 \end{align*}
 where $\mathbf{1}(A)$ denotes the indicator of the event $A$. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Permitting Changes in Linear Trends}
+
+\subsection{Harmonic regression}
+
+Order $k$ 
+
+
+\subsection{Linear trends}
+The maximum number of changepoints
+
+\[
+n - p > 2k + 1 + 2m + 1 
+\rightarrow m \leq \left\lceil \frac{n - p - 2k - 2}{2} \right\rceil- 1
+\]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Handling Outliers}
+
+Total number of outliers
+\[
+l = \sum_{t=1}^n \xi_i
+\]
 
 
 
