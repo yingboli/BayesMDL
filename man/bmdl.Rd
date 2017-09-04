@@ -5,7 +5,7 @@
 \title{Bayesian MDL (or MDL) for multiple changepoint detection}
 \usage{
 bmdl(x, dates, iter = 10000, thin = max(1, iter/1000), weights = NULL,
-  p = 2, time_unit = "month", seasonal_means = "harmonic", k = 3,
+  p = 2, time_unit = "month", seasonal_means = "harmonic", k = 4,
   scale_trend_design = 0.05, fit = "marlik", penalty = "bmdl", nu = 5,
   kappa = 3, a = 1, b_eta = length(x), b_xi = length(x),
   max_changes = NULL, max_outliers = NULL, start_eta = NULL,
