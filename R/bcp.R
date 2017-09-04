@@ -113,7 +113,8 @@ bcp = function(X, pdf_file = 'bcp.pdf', select = 'MAP', iter = 1e4,
 
   par(mfrow = mfrow, mar = mar);
   plot_bar_heat(eta_all, dates);
-
+  plot_bar_heat(xi_all, dates);
+  
   lcp = apply(eta_all, 1, last_cp);
   plot_order = order(lcp, decreasing = TRUE);
 
@@ -121,11 +122,12 @@ bcp = function(X, pdf_file = 'bcp.pdf', select = 'MAP', iter = 1e4,
     x = as.matrix(X)[i, ];
 
     plot_eta(x = as.matrix(X)[i, ], dates, varname = vars[i], eta = eta_all[i, ],
-             seasonal_cycles = seasonal_cycles_all[i, ],
+             xi = xi_all[i, ], seasonal_cycles = seasonal_cycles_all[i, ],
              mean_and_trend = mean_and_trend_all[i, ]);
   }
   dev.off();
 
-  return(list(eta_all = eta_all, seasonal_cycles_all = seasonal_cycles_all,
+  return(list(eta_all = eta_all, xi_all = xi_all, 
+              seasonal_cycles_all = seasonal_cycles_all,
               mean_and_trend_all = mean_and_trend_all));
 }
