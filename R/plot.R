@@ -1,7 +1,7 @@
 ###################################################################
 ######    Bayesian MDL for multiple changepoint detection   #######
 ###################################################################
-#' Plot the time series data and the changepoints
+#' Plot time series data, changepoints, and outliers
 #'
 #' Create a plot, with time series data \code{x} shown in points, linear trends
 #' under the selected changepoint model in blue lines, estimated changepoints
@@ -12,7 +12,8 @@
 #' Two sets of inputs can be used:
 #' \enumerate{
 #'   \item Either \code{current}, \code{A}, \code{scale_trend_design},
-#'   \item Or \code{eta}, \code{seasonal_cycles}, \code{mean_and_trend}.
+#'   \item Or \code{eta}, \code{xi}, \code{seasonal_cycles}, 
+#'   \code{mean_and_trend}.
 #' }
 #' When used, every inputs in that set must but non-NULL, while all inputs in
 #' the other set must be NULL.
@@ -33,14 +34,14 @@
 #'   \code{p}; must be non-NULL if \code{plot_res == TRUE} and
 #'   \code{is.null(current)}.
 #' @param ... Other arguments for the \code{\link{plot}} function.
-#' @importFrom graphics abline axis box lines mtext plot
+#' @importFrom graphics abline axis box lines mtext plot points
 #' @importFrom stats acf
 #' @export
 #' @keywords internal
 #'
 
 plot_eta = function(x, dates, varname = NULL, current = NULL, A = NULL,
-                    scale_trend_design = NULL, eta = NULL,
+                    scale_trend_design = NULL, eta = NULL, xi = NULL,
                     seasonal_cycles = NULL, mean_and_trend = NULL,
                     plot_res = FALSE, yw_phi = NULL, ...){
 
@@ -53,13 +54,15 @@ plot_eta = function(x, dates, varname = NULL, current = NULL, A = NULL,
   ## Compute seasonal_cycles, mean_and_trend, and eta if not provided
   if(all(!is.null(current), !is.null(A), !is.null(scale_trend_design))){
     eta = current$eta;
+    xi = current$xi;
     seasonal_cycles = c(A %*% current$inference$s);
     mu = current$inference$mu;
     D = D_eta(x, eta, scale_trend_design)$D;
     mean_and_trend = c(D %*% mu);
   }
 
-  if(any(is.null(eta), is.null(seasonal_cycles), is.null(mean_and_trend))){
+  if(any(is.null(eta), is.null(xi), is.null(seasonal_cycles), 
+         is.null(mean_and_trend))){
     stop('Missing inputs. See the Details section of the help file.');
     return();
   }
@@ -81,6 +84,9 @@ plot_eta = function(x, dates, varname = NULL, current = NULL, A = NULL,
 
   ## Create the main plot
   plot(time_ind, x, xlab = '', ylab = '', axes = FALSE, main = title1, ...);
+  if(sum(xi) > 0){
+    points(time_ind[xi == 1], x[xi == 1], pch = 4, cex = 1.5, lwd = 2);
+  }  
   axis(1, at = time_ind[jan_ind], labels = year_ind[jan_ind]);
   axis(2); box();
   lines(time_ind, seasonal_cycles + mean_and_trend, col = 6, lty = 1);

@@ -1,7 +1,8 @@
 ###########################################################
 #########   Fit an Individual Changepoint Model    ########
 ###########################################################
-#' Fit an individual changepoint model \code{eta}
+#' Fit an individual changepoint model \code{eta} and outlier model \code{xi} 
+#' pair
 #'
 #' Compute the objective function of the model, i.e., log of posterior proablity
 #' for BMDL, or log MDL, and estimate model parameters.

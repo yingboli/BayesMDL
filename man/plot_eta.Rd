@@ -2,11 +2,12 @@
 % Please edit documentation in R/plot.R
 \name{plot_eta}
 \alias{plot_eta}
-\title{Plot the time series data and the changepoints}
+\title{Plot time series data, changepoints, and outliers}
 \usage{
 plot_eta(x, dates, varname = NULL, current = NULL, A = NULL,
-  scale_trend_design = NULL, eta = NULL, seasonal_cycles = NULL,
-  mean_and_trend = NULL, plot_res = FALSE, yw_phi = NULL, ...)
+  scale_trend_design = NULL, eta = NULL, xi = NULL,
+  seasonal_cycles = NULL, mean_and_trend = NULL, plot_res = FALSE,
+  yw_phi = NULL, ...)
 }
 \arguments{
 \item{x}{The time series data, a numeric vector of length \code{n}.}
@@ -32,6 +33,8 @@ Default is 1/50.}
 indicator vector of length \code{n}, with the first \code{max(p, 1)} 
 elemenets always being 0. The maxinum number of 1's in \code{eta} is 
 \code{ceiling((n-p-2*k-2)/2)-1}.}
+
+\item{xi}{Outliers indicator, a 0/1 vector of length \code{n}.}
 
 \item{seasonal_cycles}{Estimated seasonal means, a numeric vector of length
 \code{n}.}
@@ -61,7 +64,8 @@ plotted.
 Two sets of inputs can be used:
 \enumerate{
   \item Either \code{current}, \code{A}, \code{scale_trend_design},
-  \item Or \code{eta}, \code{seasonal_cycles}, \code{mean_and_trend}.
+  \item Or \code{eta}, \code{xi}, \code{seasonal_cycles}, 
+  \code{mean_and_trend}.
 }
 When used, every inputs in that set must but non-NULL, while all inputs in
 the other set must be NULL.

@@ -2,7 +2,8 @@
 % Please edit documentation in R/fit_eta.R
 \name{fit_eta}
 \alias{fit_eta}
-\title{Fit an individual changepoint model \code{eta}}
+\title{Fit an individual changepoint model \code{eta} and outlier model \code{xi} 
+pair}
 \usage{
 fit_eta(x, A, eta, xi, p = 2, fit = "marlik", penalty = "bmdl", nu = 5,
   kappa = 3, a = 1, b_eta = length(x), b_xi = length(x),
