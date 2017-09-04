@@ -34,9 +34,12 @@
 #' @keywords internal
 
 bcp = function(X, pdf_file = 'bcp.pdf', select = 'MAP', iter = 1e4,
-               thin = max(1, iter / 1e3), p = 2, time_unit = 'month',
-               seasonal_means = 'harmonic', k = 3, scale_trend_design = 0.05,
-               fit = 'marlik', penalty = 'bmdl', nu = 5, a = 1, b = 1,
+               thin = max(1, iter / 1e3), weights = NULL, p = 2, 
+               time_unit = 'month', seasonal_means = 'harmonic', k = 3, 
+               scale_trend_design = 0.05,
+               fit = 'marlik', penalty = 'bmdl', nu = 5, a = 1, 
+               b_eta = length(x), b_xi = length(x), max_changes = NULL, 
+               max_outliers = NULL, detect_outliers = TRUE,
                width = 8, height = 4, mar = c(5, 5, 4, 1), mfrow = c(1, 1),
                start_eta = NULL, track_time = TRUE){
 
@@ -58,32 +61,37 @@ bcp = function(X, pdf_file = 'bcp.pdf', select = 'MAP', iter = 1e4,
   vars = rownames(X);
 
   ## Matrices to save eta outputs
-  eta_all = seasonal_cycles_all = mean_and_trend_all = NULL;
+  eta_all = xi_all = seasonal_cycles_all = mean_and_trend_all = NULL;
 
   ## Apply bmdl method
   for(i in 1:nvars){
     x = as.matrix(X)[i, ];
 
-    results = bmdl(x, dates, iter = iter, thin = thin, p = p,
+    results = bmdl(x, dates, iter = iter, thin = thin, weights = weights, p = p,
                    time_unit = time_unit, seasonal_means = seasonal_means, k = k,
                    scale_trend_design = scale_trend_design, fit = fit,
-                   penalty = penalty, nu = nu, a = a, b = b,
-                   start_eta = start_eta, track_time = track_time);
+                   penalty = penalty, nu = nu, a = a, b_eta = b_eta, b_xi = b_xi,
+                   max_changes = max_changes, max_outliers = max_outliers,
+                   start_eta = start_eta, track_time = track_time, 
+                   detect_outliers = detect_outliers);
     A = results$A;
 
     ## Compute eta and current
     if(select == 'MAP'){
       current = results$best;
       eta = current$eta;
+      xi = current$xi;
     }
     if(select == 'BMA'){
       iter_save = nrow(results$eta_mcmc);
       keep = ceiling(iter_save / 2):iter_save;
       eta = as.numeric(apply(results$eta_mcmc[keep, 1:n], 2, mean) > 0.5);
-      current = list(eta = eta, inference =
-                       fit_eta(x, A, eta, p = p, fit = fit, penalty = penalty,
-                               nu = nu, a = a, b = b,
-                               scale_trend_design = scale_trend_design));
+      xi = as.numeric(apply(results$xi_mcmc[keep, 1:n], 2, mean) > 0.5);
+      current = list(eta = eta, xi = xi, inference =
+                       fit_eta(x, A, eta, xi, p = p, fit = fit, penalty = penalty,
+                               nu = nu, a = a, b_eta = b_eta, b_xi = b_xi, 
+                               scale_trend_design = scale_trend_design, 
+                               weights = weights));
     }
 
     ## Compute seasonal_cycles and mean_and_trend
@@ -95,6 +103,7 @@ bcp = function(X, pdf_file = 'bcp.pdf', select = 'MAP', iter = 1e4,
 
     ## Save all
     eta_all = rbind(eta_all, eta);
+    xi_all = rbind(xi_all, xi);
     seasonal_cycles_all = rbind(seasonal_cycles_all, seasonal_cycles);
     mean_and_trend_all = rbind(mean_and_trend_all, mean_and_trend);
   }

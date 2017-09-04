@@ -8,8 +8,9 @@ last_cp(eta)
 }
 \arguments{
 \item{eta}{A multiple changepoint configuration, i.e., model. It is a 0/1
-indicator vector of length \code{n}, with the first \code{p} elemenets
-always being 0.}
+indicator vector of length \code{n}, with the first \code{max(p, 1)} 
+elemenets always being 0. The maxinum number of 1's in \code{eta} is 
+\code{ceiling((n-p-2*k-2)/2)-1}.}
 }
 \value{
 An iterger, the location of the last changepoint, or \code{NA} if

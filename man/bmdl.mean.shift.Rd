@@ -40,8 +40,8 @@ Beta-Binomial prior, or \code{'mdl'} for MDL.}
 \item{nu}{Prior variance scale of \code{mu}; only used if
 \code{fit == 'marlik'}.}
 
-\item{a}{The first and second parameters in the Beta-Binomial prior; only
-used if \code{penalty == 'bmdl'}.}
+\item{a}{The first parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}; only used if \code{penalty == 'bmdl'}.}
 
 \item{b1}{The \eqn{b} parameter in the Beta-Binomial prior of \eqn{\eta}, for
 un-documented times (i.e., times not in metadata). Default value is 239 for

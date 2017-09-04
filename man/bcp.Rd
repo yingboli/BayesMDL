@@ -5,9 +5,11 @@
 \title{Fit the changepoint detection method to multiple variables}
 \usage{
 bcp(X, pdf_file = "bcp.pdf", select = "MAP", iter = 10000, thin = max(1,
-  iter/1000), p = 2, time_unit = "month", seasonal_means = "harmonic",
-  k = 3, scale_trend_design = 0.05, fit = "marlik", penalty = "bmdl",
-  nu = 5, a = 1, b = 1, width = 8, height = 4, mar = c(5, 5, 4, 1),
+  iter/1000), weights = NULL, p = 2, time_unit = "month",
+  seasonal_means = "harmonic", k = 3, scale_trend_design = 0.05,
+  fit = "marlik", penalty = "bmdl", nu = 5, a = 1, b_eta = length(x),
+  b_xi = length(x), max_changes = NULL, max_outliers = NULL,
+  detect_outliers = TRUE, width = 8, height = 4, mar = c(5, 5, 4, 1),
   mfrow = c(1, 1), start_eta = NULL, track_time = TRUE)
 }
 \arguments{
@@ -27,6 +29,9 @@ model averaging.}
 
 \item{thin}{Thinning; save one MCMC iteration for every \code{thin} number of
 iterations.}
+
+\item{weights}{A numeric vector of observation weights, defined the same as
+the \code{weights} argument in the function \code{lm}.}
 
 \item{p}{The order of the AR process.}
 
@@ -54,11 +59,24 @@ Beta-Binomial prior, or \code{'mdl'} for MDL.}
 \item{nu}{Prior variance scale of \code{mu}; only used if
 \code{fit == 'marlik'}.}
 
-\item{a}{The first and second parameters in the Beta-Binomial prior; only
-used if \code{penalty == 'bmdl'}.}
+\item{a}{The first parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}; only used if \code{penalty == 'bmdl'}.}
 
-\item{b}{The first and second parameters in the Beta-Binomial prior; only
-used if \code{penalty == 'bmdl'}.}
+\item{b_eta}{The second parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}, respectively; only used if 
+\code{penalty == 'bmdl'}.}
+
+\item{b_xi}{The second parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}, respectively; only used if 
+\code{penalty == 'bmdl'}.}
+
+\item{max_changes}{The maximum number of changepoints, or \code{NULL} if not
+specified.}
+
+\item{max_outliers}{The maximum number of outliers, or \code{NULL} if not
+specified.}
+
+\item{detect_outliers}{Logical, whether to detect outliers.}
 
 \item{width, height}{Width and height of the output pdf (per page).}
 

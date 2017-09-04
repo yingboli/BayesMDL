@@ -29,8 +29,9 @@ for harmonic regression with a column of all 1 for intercept.}
 Default is 1/50.}
 
 \item{eta}{A multiple changepoint configuration, i.e., model. It is a 0/1
-indicator vector of length \code{n}, with the first \code{p} elemenets
-always being 0.}
+indicator vector of length \code{n}, with the first \code{max(p, 1)} 
+elemenets always being 0. The maxinum number of 1's in \code{eta} is 
+\code{ceiling((n-p-2*k-2)/2)-1}.}
 
 \item{seasonal_cycles}{Estimated seasonal means, a numeric vector of length
 \code{n}.}

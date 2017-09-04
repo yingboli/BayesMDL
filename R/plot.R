@@ -166,17 +166,19 @@ plot_best = function(results, select = 'MAP', varname = NULL, plot_res = FALSE,
     iter_save = nrow(results$eta_mcmc);
     keep = ceiling(iter_save / 2):iter_save;
     eta_bma = as.numeric(apply(results$eta_mcmc[keep, 1:n], 2, mean) > 0.5);
-
+    xi_bma = as.numeric(apply(results$xi_mcmc[keep, 1:n], 2, mean) > 0.5);
+    
     p = results$input_parameters$p;
     fit = results$input_parameters$fit;
     penalty = results$input_parameters$penalty;
     nu = results$input_parameters$nu;
     a = results$input_parameters$a;
-    b = results$input_parameters$b;
-
+    b_eta = results$input_parameters$b_eta;
+    b_xi = results$input_parameters$b_xi;
+    
     current = list(eta = eta_bma, inference =
-                     fit_eta(x, A, eta_bma, p = p, fit = fit, penalty = penalty,
-                             nu = nu, a = a, b = b,
+                     fit_eta(x, A, eta_bma, xi_bma, p = p, fit = fit, penalty = penalty,
+                             nu = nu, a = a, b_eta = b_eta, b_xi = b_xi, 
                              scale_trend_design = scale_trend_design));
   }
 

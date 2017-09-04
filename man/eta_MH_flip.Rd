@@ -2,10 +2,10 @@
 % Please edit documentation in R/mcmc_updates.R
 \name{eta_MH_flip}
 \alias{eta_MH_flip}
-\title{One MCMC iteration: propose to flip one random component of eta}
+\title{One MCMC iteration: propose to flip one random non-outlier component of eta}
 \usage{
-eta_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, b, scale_trend_design,
-  weights)
+eta_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, b_xi,
+  scale_trend_design, weights, max_changes = NULL)
 }
 \arguments{
 \item{x}{The time series data, a numeric vector of length \code{n}.}
@@ -32,17 +32,25 @@ Beta-Binomial prior, or \code{'mdl'} for MDL.}
 
 \item{kappa}{Prior variance scale of outliers.}
 
-\item{a}{The first and second parameters in the Beta-Binomial prior; only
-used if \code{penalty == 'bmdl'}.}
+\item{a}{The first parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}; only used if \code{penalty == 'bmdl'}.}
 
-\item{b}{The first and second parameters in the Beta-Binomial prior; only
-used if \code{penalty == 'bmdl'}.}
+\item{b_eta}{The second parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}, respectively; only used if 
+\code{penalty == 'bmdl'}.}
+
+\item{b_xi}{The second parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}, respectively; only used if 
+\code{penalty == 'bmdl'}.}
 
 \item{scale_trend_design}{The factor multiplied to the design matrix of trend.
 Default is 1/50.}
 
 \item{weights}{A numeric vector of observation weights, defined the same as
 the \code{weights} argument in the function \code{lm}.}
+
+\item{max_changes}{The maximum number of changepoints, or \code{NULL} if not
+specified.}
 }
 \value{
 A list object representing the (maybe) updated changepoint model.
@@ -50,13 +58,13 @@ A list object representing the (maybe) updated changepoint model.
     a vector of 0/1 indicators.}
   \item{xi}{The outliers, in the format of a vector of 0/1 indicators.}
   \item{inference}{Output of the \code{\link{fit_eta}} function on the output
-    model \code{eta}.}
+    model \code{eta}, \code{xi}.}
   \item{change_eta}{Logical, if this \code{eta} is new, i.e.,
     the proposed model is accepted.}
   \item{change_xi}{Logical, if this \code{xi} is new, i.e.,
     the proposed model is accepted.}
 }
 \description{
-One MCMC iteration: propose to flip one random component of eta
+One MCMC iteration: propose to flip one random non-outlier component of eta
 }
 \keyword{internal}

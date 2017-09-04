@@ -7,6 +7,8 @@
 #' mean and AR(p) errors.
 #'
 #' @inheritParams fit_eta
+#' @inheritParams eta_MH_flip
+#' @inheritParams xi_MH_flip
 #' @param dates The dates records are observed, a \code{POSIXlt} vector. It should
 #'   have the \code{mon} component for months, and the \code{year} component
 #'   for years. See also \code{\link{strptime}}.
@@ -26,6 +28,7 @@
 #' @param start_xi A vector of 0/1 indicators for the initial outliers, or
 #'   \code{NULL} to randomly sample an initial model.
 #' @param track_time Logical, whether to show runtime on screen.
+#' @param detect_outliers Logical, whether to detect outliers. 
 #' @return
 #' \item{best}{The optimal model which minimizes BMDL or MDL; a list representing
 #'   the model, which contains components: \code{eta}, \code{inference} (output
@@ -49,8 +52,9 @@
 bmdl = function(x, dates, iter = 1e4, thin = max(1, iter / 1e3), weights = NULL,
                 p = 2, time_unit = 'month', seasonal_means = 'harmonic', k = 3,
                 scale_trend_design = 0.05, fit = 'marlik', penalty = 'bmdl',
-                nu = 5, kappa = 3, a = 1, b = 1, start_eta = NULL,
-                start_xi = NULL, track_time = TRUE){
+                nu = 5, kappa = 3, a = 1, b_eta = length(x), b_xi = length(x),
+                max_changes = NULL, max_outliers = NULL, start_eta = NULL, 
+                start_xi = NULL, track_time = TRUE, detect_outliers = TRUE){
 
   ## Start time. To be used to compute runtime.
   t.start = proc.time();
@@ -98,7 +102,7 @@ bmdl = function(x, dates, iter = 1e4, thin = max(1, iter / 1e3), weights = NULL,
   if(length(start_eta) > n)
     stop('Error in start_eta: length of changepoint configuration cannot exceed
          length of time series.')
-  eta[1:p] = 0;
+  eta[1:max(p, 1)] = 0; ## When p = 0, time 1 cannot be a changpoint
 
   ## Initial values of xi
   if(length(start_xi) == 0)
@@ -110,12 +114,19 @@ bmdl = function(x, dates, iter = 1e4, thin = max(1, iter / 1e3), weights = NULL,
   if(length(start_xi) > n)
     stop('Error in start_xi: length of outlier indicator vector cannot exceed
          length of time series.')
+  ## If a time is a changepoint, it cannot be an outlier
+  xi[eta == 1] = 0;
+  
+  ## If not accommodating outliers
+  if(detect_outliers == FALSE){
+    xi = rep(0, n);
+  }
 
   ## Initial values
-  inference = fit_eta(x, A, eta, xi, p, fit, penalty, nu, kappa, a, b,
+  inference = fit_eta(x, A, eta, xi, p, fit, penalty, nu, kappa, a, b_eta, b_xi,
                       scale_trend_design, weights);
   best = current = list(eta = eta, xi = xi, inference = inference,
-                        change_eta = TRUE, change_xi = TRUE);
+                        change_eta = FALSE, change_xi = FALSE);
   eta_mcmc[1, ] = current$eta;
   xi_mcmc[1, ] = current$xi;
   para_mcmc[1, ] = c(current$inference$bmdl, current$inference$phi,
@@ -124,22 +135,32 @@ bmdl = function(x, dates, iter = 1e4, thin = max(1, iter / 1e3), weights = NULL,
   ## Start MCMC
   for(it in 1:iter){
 
-    ## Update eta: use MH_flip with probablity 80%, use MH_swap with probability 20%
-    action = sample(c('flip', 'swap'), 1, prob = c(0.8, 0.2), replace = TRUE);
-    ## Metropolis-Hastings update eta
-    if(action == 'flip')
-      current = eta_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, b,
-                             scale_trend_design, weights);
-    if(action == 'swap')
-      current = eta_MH_swap(x, A, current, p, fit, penalty, nu, kappa, a, b,
-                             scale_trend_design, weights);
-
-    ## Update xi: use MH_flip
-    current = xi_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, b,
-                          scale_trend_design, weights);
-
+    ## Update eta and/or xi
+    if(detect_outliers){
+      action = sample(c('eta_flip', 'eta_swap', 'xi_flip', 'eta_to_xi_flip'), 1, 
+                      prob = c(0.4, 0.1, 0.4, 0.1), replace = TRUE);
+    } else {
+      action = sample(c('eta_flip', 'eta_swap'), 1, 
+                      prob = c(0.8, 0.2), replace = TRUE);
+    }
+    
+    ## Metropolis-Hastings update eta and/or xi
+    if(action == 'eta_flip')
+      current = eta_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
+                            b_xi, scale_trend_design, weights, max_changes);
+    if(action == 'eta_swap')
+      current = eta_MH_swap(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
+                            b_xi, scale_trend_design, weights);
+    if(action == 'xi_flip')
+      current = xi_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
+                            b_xi, scale_trend_design, weights, max_outliers);
+    if(action == 'eta_to_xi_flip')
+      current = eta_to_xi_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, 
+                                  b_eta, b_xi, scale_trend_design, weights, 
+                                  max_outliers);
+    
     ## try to put the new eta to map200 if good
-    if(current$change_eta == TRUE){
+    if(current$change_eta == TRUE || current$change_xi == TRUE){
       change_rate = change_rate + 1 / iter;
 
       ## Update the best model is the current model is better
@@ -178,10 +199,12 @@ bmdl = function(x, dates, iter = 1e4, thin = max(1, iter / 1e3), weights = NULL,
   input_parameters = list(x = x, dates = dates, iter = iter, thin = thin, p = p,
                           time_unit = time_unit, seasonal_means = seasonal_means,
                           k = k, fit = fit, penalty = penalty, nu = nu,
-                          kappa = kappa, a = a, b = b, start_eta = start_eta,
-                          start_xi = start_xi, track_time = track_time,
-                          scale_trend_design = scale_trend_design,
-                          weights = weights);
+                          kappa = kappa, a = a, b_eta = b_eta, b_xi = b_xi, 
+                          start_eta = start_eta, start_xi = start_xi, 
+                          track_time = track_time, weights = weights,
+                          scale_trend_design = scale_trend_design, 
+                          max_changes = max_changes, max_outliers = max_outliers
+                          );
 
   return( list(eta_mcmc = eta_mcmc, xi_mcmc = xi_mcmc, para_mcmc = para_mcmc,
                best = best, A = A, runtime = runtime,

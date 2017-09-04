@@ -7,8 +7,9 @@
 bmdl(x, dates, iter = 10000, thin = max(1, iter/1000), weights = NULL,
   p = 2, time_unit = "month", seasonal_means = "harmonic", k = 3,
   scale_trend_design = 0.05, fit = "marlik", penalty = "bmdl", nu = 5,
-  kappa = 3, a = 1, b = 1, start_eta = NULL, start_xi = NULL,
-  track_time = TRUE)
+  kappa = 3, a = 1, b_eta = length(x), b_xi = length(x),
+  max_changes = NULL, max_outliers = NULL, start_eta = NULL,
+  start_xi = NULL, track_time = TRUE, detect_outliers = TRUE)
 }
 \arguments{
 \item{x}{The time series data, a numeric vector of length \code{n}.}
@@ -53,11 +54,22 @@ Beta-Binomial prior, or \code{'mdl'} for MDL.}
 
 \item{kappa}{Prior variance scale of outliers.}
 
-\item{a}{The first and second parameters in the Beta-Binomial prior; only
-used if \code{penalty == 'bmdl'}.}
+\item{a}{The first parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}; only used if \code{penalty == 'bmdl'}.}
 
-\item{b}{The first and second parameters in the Beta-Binomial prior; only
-used if \code{penalty == 'bmdl'}.}
+\item{b_eta}{The second parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}, respectively; only used if 
+\code{penalty == 'bmdl'}.}
+
+\item{b_xi}{The second parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}, respectively; only used if 
+\code{penalty == 'bmdl'}.}
+
+\item{max_changes}{The maximum number of changepoints, or \code{NULL} if not
+specified.}
+
+\item{max_outliers}{The maximum number of outliers, or \code{NULL} if not
+specified.}
 
 \item{start_eta}{A vector of 0/1 indicators for the initial model, or
 \code{NULL} to randomly sample an initial model.}
@@ -66,6 +78,8 @@ used if \code{penalty == 'bmdl'}.}
 \code{NULL} to randomly sample an initial model.}
 
 \item{track_time}{Logical, whether to show runtime on screen.}
+
+\item{detect_outliers}{Logical, whether to detect outliers.}
 }
 \value{
 \item{best}{The optimal model which minimizes BMDL or MDL; a list representing

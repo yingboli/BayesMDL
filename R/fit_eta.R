@@ -11,8 +11,9 @@
 #'   It is usually the matrix of seasonal indicators, or the design matrix
 #'   for harmonic regression with a column of all 1 for intercept.
 #' @param eta A multiple changepoint configuration, i.e., model. It is a 0/1
-#'   indicator vector of length \code{n}, with the first \code{p} elemenets
-#'   always being 0.
+#'   indicator vector of length \code{n}, with the first \code{max(p, 1)} 
+#'   elemenets always being 0. The maxinum number of 1's in \code{eta} is 
+#'   \code{ceiling((n-p-2*k-2)/2)-1}.
 #' @param xi Outliers indicator, a 0/1 vector of length \code{n}.
 #' @param p The order of the AR process.
 #' @param fit For likelihood calculation, \code{'marlik'} for marginal
@@ -23,8 +24,11 @@
 #' @param nu Prior variance scale of \code{mu}; only used if
 #'   \code{fit == 'marlik'}.
 #' @param kappa Prior variance scale of outliers.
-#' @param a,b The first and second parameters in the Beta-Binomial prior; only
-#'   used if \code{penalty == 'bmdl'}.
+#' @param a The first parameter in the Beta-Binomial prior of
+#'   \code{eta} and \code{xi}; only used if \code{penalty == 'bmdl'}.
+#' @param b_eta,b_xi The second parameter in the Beta-Binomial prior of
+#'   \code{eta} and \code{xi}, respectively; only used if 
+#'   \code{penalty == 'bmdl'}.
 #' @param scale_trend_design The factor multiplied to the design matrix of trend.
 #'   Default is 1/50.
 #' @param weights A numeric vector of observation weights, defined the same as
@@ -45,10 +49,10 @@
 
 
 fit_eta = function(x, A, eta, xi, p = 2, fit = 'marlik', penalty = 'bmdl',
-                   nu = 5, kappa = 3, a = 1, b = 1, scale_trend_design = 0.05,
-                   weights = NULL){
+                   nu = 5, kappa = 3, a = 1, b_eta = length(x), b_xi = length(x), 
+                   scale_trend_design = 0.05, weights = NULL){
 
-  m = sum(eta); k = sum(xi); n = length(x);
+  m = sum(eta); l = sum(xi); n = length(x);
 
   ## Design matrix for regime means and regime trend
   tmp = D_eta(x, eta, scale_trend_design);
@@ -58,7 +62,7 @@ fit_eta = function(x, A, eta, xi, p = 2, fit = 'marlik', penalty = 'bmdl',
   ## Weights: incoporate outliers
   if(is.null(weights))
     weights = rep(1, n);
-  if(k > 0){
+  if(l > 0){
     weights[xi == 1] = weights[xi == 1] / kappa^2;
   }
 
@@ -137,12 +141,12 @@ fit_eta = function(x, A, eta, xi, p = 2, fit = 'marlik', penalty = 'bmdl',
 
   ###### Compute bmdl (i.e., log_plik) #####
   if(penalty == 'bmdl')
-    bmdl = mdl.data - lgamma(a + m) - lgamma(b + n - p - m) - lgamma(a + k) -
-           lgamma(b + n - p - k);
+    bmdl = mdl.data - lgamma(a + m) - lgamma(b_eta + n - p - m) - lgamma(a + l) -
+           lgamma(b_xi + n - p - l);
 
   if(penalty == 'mdl')
-    bmdl = mdl.data + log(m + 1) + (m + 1) * log(n - p) + log(k + 1) +
-           (k + 1) * log(n - p);
+    bmdl = mdl.data + log(m + 1) + (m + 1) * log(n - p) + log(l + 1) +
+           (l + 1) * log(n - p);
 
   ## return list "inference"
   return( list(bmdl = c(bmdl), phi = phi, sigmasq = c(sigmasq),

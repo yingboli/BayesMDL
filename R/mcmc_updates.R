@@ -4,18 +4,20 @@
 ####################################################################
 ##########  Update one random component of eta at a time  ##########
 ####################################################################
-#' One MCMC iteration: propose to flip one random component of eta
+#' One MCMC iteration: propose to flip one random non-outlier component of eta
 #'
 #' @inheritParams fit_eta
 #' @param current A list object representing a changepoint model. It contains
 #'   the following components: \code{eta}, \code{xi}, \code{inference} (output of
 #'   the \code{\link{fit_eta}} function), \code{change_eta}, and \code{change_xi}.
+#' @param max_changes The maximum number of changepoints, or \code{NULL} if not
+#'   specified.
 #' @return A list object representing the (maybe) updated changepoint model.
 #'   \item{eta}{The (maybe) updated changepoint model, in the format of
 #'     a vector of 0/1 indicators.}
 #'   \item{xi}{The outliers, in the format of a vector of 0/1 indicators.}
 #'   \item{inference}{Output of the \code{\link{fit_eta}} function on the output
-#'     model \code{eta}.}
+#'     model \code{eta}, \code{xi}.}
 #'   \item{change_eta}{Logical, if this \code{eta} is new, i.e.,
 #'     the proposed model is accepted.}
 #'   \item{change_xi}{Logical, if this \code{xi} is new, i.e.,
@@ -26,21 +28,40 @@
 #' @keywords internal
 #'
 
-eta_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b,
-                        scale_trend_design, weights){
+eta_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, 
+                       b_xi, scale_trend_design, weights, max_changes = NULL){
 
   eta = current$eta;
+  xi = current$xi;
   current$change_eta = FALSE;
-
-  ## Randomly select the component to be flipped
-  ## Note that if p == 0, the first time cannot be a changepoint!
+  current$change_xi = FALSE;
+  
   n = length(x);
-  j = sample((max(p, 1) + 1):n, 1);
+
+  ## Location of eta that can be flipped
+  candidate_eta = 1:n;
+  ## An outlier cannot be a changepoint
+  if(sum(xi) > 0){ 
+    candidate_eta = candidate_eta[-which(xi == 1)];
+  }
+  ## The first max(p, 1) locations cannot be changepoints
+  candidate_eta = candidate_eta[candidate_eta > max(p, 1)];
+  
+  ## The total number of changepoints m cannot exceed max_changes
+  if(is.null(max_changes)){
+    max_changes = ceiling((length(x) - p - ncol(A) - 1) / 2) - 1;
+  }
+  if(sum(eta) == max_changes){
+    candidate_eta = candidate_eta[eta[candidate_eta] == 1];
+  }
+  
+  ## Randomly select the component to be flipped
+  j = sample(candidate_eta, 1);
   eta2 = eta;
   eta2[j] = 1 - eta[j];
 
-  inference2 = fit_eta(x, A, eta2, current$xi, p, fit, penalty, nu, kappa, a, b,
-                       scale_trend_design, weights);
+  inference2 = fit_eta(x, A, eta2, current$xi, p, fit, penalty, nu, kappa, a, 
+                       b_eta, b_xi, scale_trend_design, weights);
 
   loga = current$inference$bmdl - inference2$bmdl;
   logu = log(runif(1));
@@ -66,7 +87,7 @@ eta_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b,
 #'     a vector of 0/1 indicators.}
 #'   \item{xi}{The outliers, in the format of a vector of 0/1 indicators.}
 #'   \item{inference}{Output of the \code{\link{fit_eta}} function on the output
-#'     model \code{eta}.}
+#'     model \code{eta}, \code{xi}.}
 #'   \item{change_eta}{Logical, if this \code{eta} is new, i.e.,
 #'     the proposed model is accepted.}
 #'   \item{change_xi}{Logical, if this \code{xi} is new, i.e.,
@@ -76,12 +97,13 @@ eta_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b,
 #' @keywords internal
 #'
 
-eta_MH_swap = function(x, A, current, p, fit, penalty, nu, kappa, a, b,
-                        scale_trend_design, weights){
+eta_MH_swap = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, 
+                       b_xi, scale_trend_design, weights){
 
   eta = current$eta;
   current$change_eta = FALSE;
-
+  current$change_xi = FALSE;
+  
   ## Randomly select the component i and j to be swapped
   ## Note that if p == 0, the first time cannot be a changepoint!
   n = length(x);
@@ -109,7 +131,7 @@ eta_MH_swap = function(x, A, current, p, fit, penalty, nu, kappa, a, b,
     eta2[j] = 1 - eta[j];
 
     inference2 = fit_eta(x, A, eta2, current$xi, p, fit, penalty, nu, kappa, a,
-                         b, scale_trend_design, weights);
+                         b_eta, b_xi, scale_trend_design, weights);
 
     loga = current$inference$bmdl - inference2$bmdl;
     logu = log(runif(1));
@@ -127,16 +149,18 @@ eta_MH_swap = function(x, A, current, p, fit, penalty, nu, kappa, a, b,
 ####################################################################
 ##########  Update one random component of xi at a time  ##########
 ####################################################################
-#' One MCMC iteration: propose to flip one random component of xi
+#' One MCMC iteration: propose to flip one random non-changepoint component of xi
 #'
 #' @inheritParams fit_eta
 #' @inheritParams eta_MH_flip
+#' @param max_outliers The maximum number of outliers, or \code{NULL} if not
+#'   specified.
 #' @return A list object representing the (maybe) updated changepoint model.
 #'   \item{eta}{The (maybe) updated changepoint model, in the format of
 #'     a vector of 0/1 indicators.}
 #'   \item{xi}{The outliers, in the format of a vector of 0/1 indicators.}
 #'   \item{inference}{Output of the \code{\link{fit_eta}} function on the output
-#'     model \code{eta}.}
+#'     model \code{eta}, \code{xi}.}
 #'   \item{change_eta}{Logical, if this \code{eta} is new, i.e.,
 #'     the proposed model is accepted.}
 #'   \item{change_xi}{Logical, if this \code{xi} is new, i.e.,
@@ -146,21 +170,36 @@ eta_MH_swap = function(x, A, current, p, fit, penalty, nu, kappa, a, b,
 #' @keywords internal
 #'
 
-xi_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b,
-                      scale_trend_design, weights){
+xi_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, b_xi,
+                      scale_trend_design, weights, max_outliers){
 
+  eta = current$eta;
   xi = current$xi;
+  current$change_eta = FALSE;
   current$change_xi = FALSE;
-
-  ## Randomly select the component to be flipped
-  ## Note that if p == 0, the first time can be an outlier!
+  
   n = length(x);
-  j = sample((p + 1):n, 1);
+  candidate_xi = 1:n;
+  
+  ## If a time is a changepoint, then it cannot be an outlier
+  if(sum(eta) > 0){
+    candidate_xi[eta[candidate_xi] == 0];
+  }
+  ## The total number of outliers l cannot exceed max_outliers
+  if(is.null(max_outliers)){
+    max_outliers = floor(n / 6);
+  }
+  if(sum(xi) == max_outliers){
+    candidate_xi = candidate_xi[xi[candidate_xi] == 1];
+  }
+  
+  ## Randomly select the component to be flipped
+  j = sample(candidate_xi, 1);
   xi2 = xi;
   xi2[j] = 1 - xi[j];
 
-  inference2 = fit_eta(x, A, current$eta, xi2, p, fit, penalty, nu, kappa, a, b,
-                       scale_trend_design, weights);
+  inference2 = fit_eta(x, A, current$eta, xi2, p, fit, penalty, nu, kappa, a, 
+                       b_eta, b_xi, scale_trend_design, weights);
 
   loga = current$inference$bmdl - inference2$bmdl;
   logu = log(runif(1));
@@ -172,4 +211,71 @@ xi_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b,
 
   return(current);
 
+}
+
+####################################################################
+##########        Flip one changepoint to an outlier      ##########
+####################################################################
+#' One MCMC iteration: propose to flip one random non-changepoint component of xi
+#'
+#' @inheritParams fit_eta
+#' @inheritParams eta_MH_flip
+#' @inheritParams xi_MH_flip
+#' @return A list object representing the (maybe) updated changepoint model.
+#'   \item{eta}{The (maybe) updated changepoint model, in the format of
+#'     a vector of 0/1 indicators.}
+#'   \item{xi}{The outliers, in the format of a vector of 0/1 indicators.}
+#'   \item{inference}{Output of the \code{\link{fit_eta}} function on the output
+#'     model \code{eta}, \code{xi}.}
+#'   \item{change_eta}{Logical, if this \code{eta} is new, i.e.,
+#'     the proposed model is accepted.}
+#'   \item{change_xi}{Logical, if this \code{xi} is new, i.e.,
+#'     the proposed model is accepted.}
+#'
+#' @export
+#' @keywords internal
+#'
+eta_to_xi_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, 
+                             b_xi, scale_trend_design, weights, max_outliers){
+  
+  eta = current$eta;
+  xi = current$xi;
+  current$change_eta = FALSE;
+  current$change_xi = FALSE;
+  
+  n = length(x);
+  
+  if(sum(eta) >= 1 && sum(xi) <= max_outliers - 1){
+    ## Randomly select the changepoint to be flipped to an outlier
+    if(sum(eta) == 1)
+      i = which(eta == 1);
+    if(sum(eta) > 1){
+      candidate_eta = which(eta == 1);
+      next_eta = (candidate_eta + 1) %in% candidate_eta;
+      prob_eta = rep(1, length(candidate_eta)) + 2 * next_eta;
+      prob_eta = prob_eta / sum(prob_eta);
+      i = sample(candidate_eta, 1, prob = prob_eta);
+    }  
+    
+    eta2 = eta;
+    xi2 = xi;
+    eta2[i] = 0;
+    xi2[i] = 1;
+    
+    inference2 = fit_eta(x, A, eta2, xi2, p, fit, penalty, nu, kappa, a,
+                         b_eta, b_xi, scale_trend_design, weights);
+    
+    loga = current$inference$bmdl - inference2$bmdl;
+    logu = log(runif(1));
+    if(loga > logu){
+      current$eta = eta2;
+      current$xi = xi2;
+      current$inference = inference2;
+      current$change_eta = TRUE;
+      current$change_xi = TRUE;
+    }
+  }
+
+  return(current);
+  
 }

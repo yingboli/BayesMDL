@@ -10,14 +10,15 @@ D_eta(x, eta, scale_trend_design)
 \item{x}{The time series data, a numeric vector of length \code{n}.}
 
 \item{eta}{A multiple changepoint configuration, i.e., model. It is a 0/1
-indicator vector of length \code{n}, with the first \code{p} elemenets
-always being 0.}
+indicator vector of length \code{n}, with the first \code{max(p, 1)} 
+elemenets always being 0. The maxinum number of 1's in \code{eta} is 
+\code{ceiling((n-p-2*k-2)/2)-1}.}
 
 \item{scale_trend_design}{The factor multiplied to the design matrix of trend.
 Default is 1/50.}
 }
 \value{
-\item{D}{A \code{n} by \code{(2*m-1)} matrix. The first \code{m}
+\item{D}{A \code{n} by \code{(2*m+1)} matrix. The first \code{m}
   columns are for regime means; they are 0/1 indicators for regimes from 2 to
   \code{m}. The next \code{(m+1)} columns are for trends.}
 \item{seg_lengths}{A vector of length \code{m}, regime lengths, including

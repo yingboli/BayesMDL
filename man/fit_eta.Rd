@@ -5,7 +5,8 @@
 \title{Fit an individual changepoint model \code{eta}}
 \usage{
 fit_eta(x, A, eta, xi, p = 2, fit = "marlik", penalty = "bmdl", nu = 5,
-  kappa = 3, a = 1, b = 1, scale_trend_design = 0.05, weights = NULL)
+  kappa = 3, a = 1, b_eta = length(x), b_xi = length(x),
+  scale_trend_design = 0.05, weights = NULL)
 }
 \arguments{
 \item{x}{The time series data, a numeric vector of length \code{n}.}
@@ -15,8 +16,9 @@ It is usually the matrix of seasonal indicators, or the design matrix
 for harmonic regression with a column of all 1 for intercept.}
 
 \item{eta}{A multiple changepoint configuration, i.e., model. It is a 0/1
-indicator vector of length \code{n}, with the first \code{p} elemenets
-always being 0.}
+indicator vector of length \code{n}, with the first \code{max(p, 1)} 
+elemenets always being 0. The maxinum number of 1's in \code{eta} is 
+\code{ceiling((n-p-2*k-2)/2)-1}.}
 
 \item{xi}{Outliers indicator, a 0/1 vector of length \code{n}.}
 
@@ -34,8 +36,12 @@ Beta-Binomial prior, or \code{'mdl'} for MDL.}
 
 \item{kappa}{Prior variance scale of outliers.}
 
-\item{a, b}{The first and second parameters in the Beta-Binomial prior; only
-used if \code{penalty == 'bmdl'}.}
+\item{a}{The first parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}; only used if \code{penalty == 'bmdl'}.}
+
+\item{b_eta, b_xi}{The second parameter in the Beta-Binomial prior of
+\code{eta} and \code{xi}, respectively; only used if 
+\code{penalty == 'bmdl'}.}
 
 \item{scale_trend_design}{The factor multiplied to the design matrix of trend.
 Default is 1/50.}
