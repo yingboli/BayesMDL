@@ -74,7 +74,7 @@ loc2dirac = function(loc, N){
 #'
 #' @inheritParams fit_eta
 #' @return
-#' \item{D}{A \code{n} by \code{(2*m-1)} matrix. The first \code{m}
+#' \item{D}{A \code{n} by \code{(2*m+1)} matrix. The first \code{m}
 #'   columns are for regime means; they are 0/1 indicators for regimes from 2 to
 #'   \code{m}. The next \code{(m+1)} columns are for trends.}
 #' \item{seg_lengths}{A vector of length \code{m}, regime lengths, including
@@ -88,7 +88,7 @@ D_eta = function(x, eta, scale_trend_design){
 
   m = sum(eta); n = length(x);
 
-  ## Design matrix for regime means: n by m (eventually: n by m - 1)
+  ## Design matrix for regime means: n by m + 1 (eventually: n by m)
   ## Later, the column for the 1st regime will be deleted in D_mu
   D_mu = matrix(as.numeric(matrix(rep(cumsum(eta) + 1, m + 1), ncol = m + 1) ==
                              matrix(rep(1:(m + 1), n), ncol = m + 1, byrow = TRUE)),
@@ -96,7 +96,7 @@ D_eta = function(x, eta, scale_trend_design){
 
   seg_lengths = apply(D_mu, 2, sum);
 
-  ## Design matrix for regime trends: n by m
+  ## Design matrix for regime trends: n by (m + 1)
   D_alpha = matrix(rep(1:n), nrow = n, ncol = m + 1);
   D_alpha = (D_alpha - matrix(c(0, which(eta == 1) - 1) + (1 + seg_lengths) / 2,
                               nrow = n, ncol = m + 1, byrow = TRUE)) * D_mu;
