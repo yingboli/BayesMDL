@@ -137,27 +137,38 @@ bmdl = function(x, dates, iter = 1e4, thin = max(1, iter / 1e3), weights = NULL,
 
     ## Update eta and/or xi
     if(detect_outliers){
-      action = sample(c('eta_flip', 'eta_swap', 'xi_flip', 'eta_to_xi_flip'), 1, 
-                      prob = c(0.4, 0.1, 0.4, 0.1), replace = TRUE);
+      action = sample(c('eta_birth', 'eta_death', 'eta_swap', 'xi_birth', 
+                        'xi_death', 'eta_to_xi_flip'), 1, 
+                      prob = c(0.25, 0.15, 0.1, 0.25, 0.15, 0.1));
     } else {
-      action = sample(c('eta_flip', 'eta_swap'), 1, 
-                      prob = c(0.8, 0.2), replace = TRUE);
+      action = sample(c('eta_birth', 'eta_death', 'eta_swap'), 1, 
+                      prob = c(0.5, 0.3, 0.2), replace = TRUE);
     }
     
     ## Metropolis-Hastings update eta and/or xi
-    if(action == 'eta_flip')
-      current = eta_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
+    if(action == 'eta_birth')
+      current = eta_MH_birth(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
                             b_xi, scale_trend_design, weights, max_changes);
+    if(action == 'eta_death')
+      current = eta_MH_death(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
+                             b_xi, scale_trend_design, weights);
     if(action == 'eta_swap')
       current = eta_MH_swap(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
                             b_xi, scale_trend_design, weights);
-    if(action == 'xi_flip')
-      current = xi_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
+    if(action == 'xi_birth')
+      current = xi_MH_birth(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
                             b_xi, scale_trend_design, weights, max_outliers);
+    if(action == 'xi_death')
+      current = xi_MH_death(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
+                            b_xi, scale_trend_design, weights);
     if(action == 'eta_to_xi_flip')
       current = eta_to_xi_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, 
                                   b_eta, b_xi, scale_trend_design, weights, 
                                   max_outliers);
+    
+    if(sum(current$eta * current$xi) > 0){
+      stop('Error: a time cannot be both a changepoint and an outlier.')
+    }
     
     ## try to put the new eta to map200 if good
     if(current$change_eta == TRUE || current$change_xi == TRUE){
