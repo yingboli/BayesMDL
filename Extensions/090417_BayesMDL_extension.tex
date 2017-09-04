@@ -1,0 +1,192 @@
+\documentclass[12pt]{article}
+%\documentclass[jasa,12pt]{article}
+%\documentclass[leqno,12pt]{article}
+\usepackage{mathrsfs}
+\usepackage{amsfonts,amsmath,latexsym,amsthm}
+\usepackage{graphicx} 
+\usepackage{xr-hyper}
+\usepackage{url, hyperref}
+\usepackage{setspace}
+\usepackage{natbib}
+\bibpunct{(}{)}{;}{a}{}{,}
+%\usepackage{fmtcount}
+%\usepackage{longtable}  %% allow tables to flow over page boundaries
+\usepackage{multirow}  %% allow multi row in tables (see first table in Section 6.1)
+%\usepackage{enumerate}  %% allow different style of counter in enumerate environment (see asymptotic theorems)
+%\usepackage{rotating}  %% allow rotation of letters (see tables in simulation)
+%\usepackage[latin1]{inputenc} % From LaTeX distribution
+%\usepackage{calc}         % From LaTeX distribution 
+%\usepackage{ifthen}       % From LaTeX distribution
+%\usepackage{pst-all}      % From PSTricks
+%\usepackage{pst-poly}     % From pstricks/contrib/pst-poly
+%\usepackage{multido}      % From PSTricks
+%\input{random.tex}        % From CTAN/macros/generic
+%\usepackage[notref, notcite]{showkeys} % to show ref labels
+
+\usepackage{enumitem}
+
+
+\hypersetup{
+    colorlinks,%
+    citecolor=blue,%
+    filecolor=black,%
+    linkcolor=blue,%
+    urlcolor=blue
+}
+
+
+\pdfminorversion=4
+
+
+\doublespacing
+% DON'T change margins - should be 1 inch all around.
+%\addtolength{\oddsidemargin}{-.5in}%
+%\addtolength{\evensidemargin}{-.5in}%
+%\addtolength{\textwidth}{1in}%
+%\addtolength{\textheight}{1.3in}%
+%\addtolength{\topmargin}{-.8in}%
+
+\setlength{\textwidth}{16.7cm} \setlength{\textheight}{22.5cm}
+\setlength{\oddsidemargin}{-0.1cm} \setlength{\evensidemargin}{-1cm}
+\setlength{\topmargin}{-1.5cm}
+\usepackage{setspace}
+
+
+\newtheorem{theorem}{Theorem}%[section]
+\newtheorem{corollary}{Corollary}%[section]
+\newtheorem{lemma}{Lemma}%[section]
+\newtheorem{proposition}{Proposition}%[section]
+\newtheorem{definition}{Definition}%[section]
+\newtheorem{remark}{Remark}%[section]
+\newtheorem{problem}{Problem}
+\newtheorem{counterexample}{Counterexample}[section]
+%\newtheorem*{assumption}{Assumption}
+\newtheorem{assumption}{Assumption}
+\newtheorem{example}{Example}
+%\numberwithin{equation}{section}
+
+\def\TODO{\textcolor{red}}
+\def\red{\textcolor{red}}
+\def\blue{\textcolor{blue}}
+
+
+%%%%%%%%%%%%%%%%%  blinding %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\long\gdef\blind#1#2{\ifbld{\em \color{blue}#1}\else{#2}\fi} %% Text for blinding shown in blue
+\long\gdef\blind#1#2{\ifbld{#1}\else{#2}\fi} %% Text for blinding shown in black
+\newif\ifbld \bldfalse
+%\newif\ifbld \bldtrue
+%%%%%%%%%%%%%%%%%  blinding %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\newpsobject{showgrid}{psgrid}{subgriddiv=1,griddots=10,gridlabels=6pt}
+
+
+
+%macro file 
+%\input{macros}
+
+
+
+\newpage
+
+
+
+\title{Extension of Bayesian MDL for Changepoint Detection} \date{}
+\author{\blind{}{Yingbo Li\footnote{ e-mail: {\tt carolli13@gmail.com}.}}
+       }
+
+\begin{document}
+
+\maketitle
+
+\externaldocument{appendix}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% abstract
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\begin{abstract}
+%
+%
+%
+%\end{abstract}
+%
+%\noindent%
+%{\it Keywords:}  Bayesian model selection, 
+
+
+
+%\newpage\tableofcontents %% to show outline, too be removed later
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Draft
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Current Bayesian MDL Formula}
+
+\subsection{Linear model}
+
+Given a changepoint model $\boldsymbol{\eta}$, the sampling distribution 
+\eqref{eq:likelihood1} has the regression representation
+\begin{equation}
+\label{eq:likelihood3}
+\mathbf{X}_{1:N} = \mathbf{A}_{1:N} \mathbf{s} + 
+\mathbf{D}_{1:N}\boldsymbol\mu + \boldsymbol\epsilon_{1:N},
+\end{equation}
+with $\mathbf{A}_{1:N}\in \mathbb{R}^{N \times T}$ and 
+$\mathbf{D}_{1:N} \in \mathbb{R}^{N \times m}$ as seasonal and regime 
+indicator matrices, respectively:
+\begin{align*}
+&\left[ \mathbf{A}_{1:N} \right]_{t,v} = 
+	\mathbf{1}( \text{time } t \text{ is in season } v ), ~~~ v = 1,  \ldots, T,\\
+&\left[ \mathbf{D}_{1:N} \right]_{t,r-1} = 
+	\mathbf{1}( \text{time } t \text{ is in regime } r ), ~~~ r = 2, \ldots, m + 1,
+\end{align*}
+where $\mathbf{1}(A)$ denotes the indicator of the event $A$. 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section*{Supplementary Materials}
+%\begin{description}[leftmargin=*, itemsep=0em]
+%\item[Appendix \ref{appendix:proofs}:] a list of assumptions, all the proofs, and some additional theoretical results.
+%\item[CHIC\_examples.zip:] R scripts for producing the simulation and real data results.
+%
+%\end{description}
+
+%{\bf R package}: R package  ``gglm'' for implementation of all methods used in the paper, including the CH-$g$, the Beta-prime,
+%and the Robust priors. (gglm\_1.0.tar.gz) \\
+ 
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\blind{}{
+%\section*{Acknowledgement}
+%The authors thank 
+%}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+{\small
+\singlespacing
+\bibliographystyle{asa}
+%\bibliographystyle{agsm}
+\bibliography{/Users/yingbo/Dropbox/Research/MyRef.bib}
+
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\pagebreak
+%
+%\setcounter{section}{0}
+%\setcounter{page}{1}
+%
+%
+%\begin{center}
+%{\LARGE
+%Mixtures of $g$-priors in Generalized Linear Models\\
+%}
+%
+%{\LARGE
+%\emph{
+%Supplementary Materials
+%}
+%}
+%\end{center}
+%\input{appendix.tex}
+
+\end{document}
