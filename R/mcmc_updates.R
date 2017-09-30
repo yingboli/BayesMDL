@@ -87,6 +87,9 @@ eta_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
 #'   the \code{\link{fit_eta}} function), \code{change_eta}, and \code{change_xi}.
 #' @param max_changes The maximum number of changepoints, or \code{NULL} if not
 #'   specified.
+#' @param eta_mcmc_prob A vector of three probablities, for the birth, death,
+#'   and swap proposals for the changepoint model \code{eta}. The three 
+#'   probabilities should add up to one.
 #' @return A list object representing the (maybe) updated changepoint model.
 #'   \item{eta}{The (maybe) updated changepoint model, in the format of
 #'     a vector of 0/1 indicators.}
@@ -104,7 +107,8 @@ eta_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
 #'
 
 eta_MH_birth = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, 
-                        b_xi, scale_trend_design, weights, max_changes){
+                        b_xi, scale_trend_design, weights, max_changes, 
+                        eta_mcmc_prob){
   
   eta = current$eta;
   xi = current$xi;
@@ -144,8 +148,10 @@ eta_MH_birth = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
   
     inference2 = fit_eta(x, A, eta2, current$xi, p, fit, penalty, nu, kappa, a, 
                          b_eta, b_xi, scale_trend_design, weights);
-  
-    loga = current$inference$bmdl - inference2$bmdl;
+    
+    ## log of MCMC acceptance probability: remember to add the ratio of proposals
+    loga = current$inference$bmdl - inference2$bmdl + 
+           log(eta_mcmc_prob[2]) - log(eta_mcmc_prob[1]); 
     logu = log(runif(1));
     if(loga > logu){
       current$eta = eta2;
@@ -163,12 +169,7 @@ eta_MH_birth = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
 ####################################################################
 #' One MCMC iteration: propose to flip one random component of eta from 1 to 0
 #'
-#' @inheritParams fit_eta
-#' @param current A list object representing a changepoint model. It contains
-#'   the following components: \code{eta}, \code{xi}, \code{inference} (output of
-#'   the \code{\link{fit_eta}} function), \code{change_eta}, and \code{change_xi}.
-#' @param max_changes The maximum number of changepoints, or \code{NULL} if not
-#'   specified.
+#' @inheritParams eta_MH_birth
 #' @return A list object representing the (maybe) updated changepoint model.
 #'   \item{eta}{The (maybe) updated changepoint model, in the format of
 #'     a vector of 0/1 indicators.}
@@ -186,7 +187,7 @@ eta_MH_birth = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
 #'
 
 eta_MH_death = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, 
-                        b_xi, scale_trend_design, weights){
+                        b_xi, scale_trend_design, weights, eta_mcmc_prob){
   
   eta = current$eta;
   xi = current$xi;
@@ -216,7 +217,9 @@ eta_MH_death = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
     inference2 = fit_eta(x, A, eta2, current$xi, p, fit, penalty, nu, kappa, a, 
                          b_eta, b_xi, scale_trend_design, weights);
     
-    loga = current$inference$bmdl - inference2$bmdl;
+    ## log of MCMC acceptance probability: remember to add the ratio of proposals
+    loga = current$inference$bmdl - inference2$bmdl + 
+      log(eta_mcmc_prob[1]) - log(eta_mcmc_prob[2]); 
     logu = log(runif(1));
     if(loga > logu){
       current$eta = eta2;
@@ -232,8 +235,7 @@ eta_MH_death = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
 ####################################################################
 #' One MCMC iteration: propose to swap a changepoint with a non-changepoint
 #'
-#' @inheritParams fit_eta
-#' @inheritParams eta_MH_flip
+#' @inheritParams eta_MH_birth
 #' @return A list object representing the (maybe) updated changepoint model.
 #'   \item{eta}{The (maybe) updated changepoint model, in the format of
 #'     a vector of 0/1 indicators.}
@@ -378,9 +380,12 @@ xi_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, b_xi,
 #' xi from 0 to 1
 #'
 #' @inheritParams fit_eta
-#' @inheritParams eta_MH_flip
+#' @inheritParams eta_MH_birth
 #' @param max_outliers The maximum number of outliers, or \code{NULL} if not
 #'   specified.
+#' @param xi_mcmc_prob A vector of four probablities, for the birth and death
+#'   proposals for the outlier model \code{xi}, and the \code{eta_to_xi}, and 
+#'   \code{xi_to_eta} proposals. The four probability should add up to one.
 #' @return A list object representing the (maybe) updated changepoint model.
 #'   \item{eta}{The (maybe) updated changepoint model, in the format of
 #'     a vector of 0/1 indicators.}
@@ -397,7 +402,8 @@ xi_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, b_xi,
 #'
 
 xi_MH_birth = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, 
-                       b_xi, scale_trend_design, weights, max_outliers){
+                       b_xi, scale_trend_design, weights, max_outliers,
+                       xi_mcmc_prob){
   
   eta = current$eta;
   xi = current$xi;
@@ -435,8 +441,9 @@ xi_MH_birth = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
     
     inference2 = fit_eta(x, A, current$eta, xi2, p, fit, penalty, nu, kappa, a, 
                          b_eta, b_xi, scale_trend_design, weights);
-    
-    loga = current$inference$bmdl - inference2$bmdl;
+    ## log of MCMC acceptance probability: remember to add the ratio of proposals
+    loga = current$inference$bmdl - inference2$bmdl + 
+           log(xi_mcmc_prob[2]) - log(xi_mcmc_prob[1]);
     logu = log(runif(1));
     if(loga > logu){
       current$xi = xi2;
@@ -451,11 +458,10 @@ xi_MH_birth = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
 ####################################################################
 ##########    Update one random component of xi: 1 -> 0   ##########
 ####################################################################
-#' One MCMC iteration: propose to flip one random non-changepoint component of 
+#' One MCMC iteration: propose to flip one random changepoint component of 
 #' xi from 1 to 0
 #'
-#' @inheritParams fit_eta
-#' @inheritParams eta_MH_flip
+#' @inheritParams xi_MH_birth
 #' @param max_outliers The maximum number of outliers, or \code{NULL} if not
 #'   specified.
 #' @return A list object representing the (maybe) updated changepoint model.
@@ -474,7 +480,7 @@ xi_MH_birth = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
 #'
 
 xi_MH_death = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, 
-                       b_xi, scale_trend_design, weights){
+                       b_xi, scale_trend_design, weights, xi_mcmc_prob){
   
   eta = current$eta;
   xi = current$xi;
@@ -505,7 +511,9 @@ xi_MH_death = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
     inference2 = fit_eta(x, A, current$eta, xi2, p, fit, penalty, nu, kappa, a, 
                          b_eta, b_xi, scale_trend_design, weights);
     
-    loga = current$inference$bmdl - inference2$bmdl;
+    ## log of MCMC acceptance probability: remember to add the ratio of proposals
+    loga = current$inference$bmdl - inference2$bmdl + 
+           log(xi_mcmc_prob[1]) - log(xi_mcmc_prob[2]);
     logu = log(runif(1));
     if(loga > logu){
       current$xi = xi2;
@@ -520,11 +528,9 @@ xi_MH_death = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
 ####################################################################
 ##########        Flip one changepoint to an outlier      ##########
 ####################################################################
-#' One MCMC iteration: propose to flip one random non-changepoint component of xi
+#' One MCMC iteration: propose to flip one random changepoint to an outlier
 #'
-#' @inheritParams fit_eta
-#' @inheritParams eta_MH_flip
-#' @inheritParams xi_MH_flip
+#' @inheritParams xi_MH_birth
 #' @return A list object representing the (maybe) updated changepoint model.
 #'   \item{eta}{The (maybe) updated changepoint model, in the format of
 #'     a vector of 0/1 indicators.}
@@ -540,7 +546,8 @@ xi_MH_death = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
 #' @keywords internal
 #'
 eta_to_xi_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, 
-                             b_xi, scale_trend_design, weights, max_outliers){
+                             b_xi, scale_trend_design, weights, max_outliers, 
+                             xi_mcmc_prob){
   
   eta = current$eta;
   xi = current$xi;
@@ -559,10 +566,11 @@ eta_to_xi_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta
       j = which(eta == 1);
     if(sum(eta) > 1){
       candidate_eta = which(eta == 1);
-      next_eta = (candidate_eta + 1) %in% candidate_eta;
-      prob_eta = rep(1, length(candidate_eta)) + 2 * next_eta;
-      prob_eta = prob_eta / sum(prob_eta);
-      j = sample(candidate_eta, 1, prob = prob_eta);
+      # next_eta = (candidate_eta + 1) %in% candidate_eta;
+      # prob_eta = rep(1, length(candidate_eta)) + 2 * next_eta;
+      # prob_eta = prob_eta / sum(prob_eta);
+      # j = sample(candidate_eta, 1, prob = prob_eta);
+      j = sample(candidate_eta, 1);
     }  
     
     eta2 = eta;
@@ -573,7 +581,9 @@ eta_to_xi_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta
     inference2 = fit_eta(x, A, eta2, xi2, p, fit, penalty, nu, kappa, a,
                          b_eta, b_xi, scale_trend_design, weights);
     
-    loga = current$inference$bmdl - inference2$bmdl;
+    ## log of MCMC acceptance probability: remember to add the ratio of proposals
+    loga = current$inference$bmdl - inference2$bmdl + 
+           log(xi_mcmc_prob[4]) - log(xi_mcmc_prob[3]);
     logu = log(runif(1));
     if(loga > logu){
       current$eta = eta2;
@@ -584,6 +594,78 @@ eta_to_xi_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta
     }
   }
 
+  return(current);
+  
+}
+
+####################################################################
+##########        Flip one outlier to a changepoint       ##########
+####################################################################
+#' One MCMC iteration: propose to flip one random outlier to a changepoint
+#'
+#' @inheritParams eta_MH_birth
+#' @inheritParams xi_MH_birth
+#' @return A list object representing the (maybe) updated changepoint model.
+#'   \item{eta}{The (maybe) updated changepoint model, in the format of
+#'     a vector of 0/1 indicators.}
+#'   \item{xi}{The outliers, in the format of a vector of 0/1 indicators.}
+#'   \item{inference}{Output of the \code{\link{fit_eta}} function on the output
+#'     model \code{eta}, \code{xi}.}
+#'   \item{change_eta}{Logical, if this \code{eta} is new, i.e.,
+#'     the proposed model is accepted.}
+#'   \item{change_xi}{Logical, if this \code{xi} is new, i.e.,
+#'     the proposed model is accepted.}
+#'
+#' @export
+#' @keywords internal
+#'
+xi_to_eta_MH_flip = function(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, 
+                             b_xi, scale_trend_design, weights, max_changes, 
+                             xi_mcmc_prob){
+  
+  eta = current$eta;
+  xi = current$xi;
+  current$change_eta = FALSE;
+  current$change_xi = FALSE;
+  
+  n = length(x);
+  
+  ## The total number of changepoints m cannot exceed max_changes
+  if(is.null(max_changes)){
+    max_changes = ceiling((length(x) - p - ncol(A) - 1) / 2) - 1;
+  }
+  if(sum(xi) >= 1 && sum(eta) < max_changes){
+    ## Location of xi that can be changed to a changepoint: among outliers
+    candidate_xi = which(xi == 1);
+   
+    ## Randomly select the component to be flipped
+    if(length(candidate_xi) == 1){
+      j = candidate_xi;
+    }
+    if(length(candidate_xi) > 1){
+      j = sample(candidate_xi, 1);
+    }  
+    eta2 = eta;
+    xi2 = xi;
+    eta2[j] = 1;
+    xi2[j] = 0;
+
+    inference2 = fit_eta(x, A, eta2, xi2, p, fit, penalty, nu, kappa, a,
+                         b_eta, b_xi, scale_trend_design, weights);
+    
+    ## log of MCMC acceptance probability: remember to add the ratio of proposals
+    loga = current$inference$bmdl - inference2$bmdl + 
+      log(xi_mcmc_prob[3]) - log(xi_mcmc_prob[4]);
+    logu = log(runif(1));
+    if(loga > logu){
+      current$eta = eta2;
+      current$xi = xi2;
+      current$inference = inference2;
+      current$change_eta = TRUE;
+      current$change_xi = TRUE;
+    }
+  }
+  
   return(current);
   
 }

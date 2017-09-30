@@ -2,10 +2,10 @@
 % Please edit documentation in R/mcmc_updates.R
 \name{eta_to_xi_MH_flip}
 \alias{eta_to_xi_MH_flip}
-\title{One MCMC iteration: propose to flip one random non-changepoint component of xi}
+\title{One MCMC iteration: propose to flip one random changepoint to an outlier}
 \usage{
 eta_to_xi_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, b_xi,
-  scale_trend_design, weights, max_outliers)
+  scale_trend_design, weights, max_outliers, xi_mcmc_prob)
 }
 \arguments{
 \item{x}{The time series data, a numeric vector of length \code{n}.}
@@ -51,6 +51,10 @@ the \code{weights} argument in the function \code{lm}.}
 
 \item{max_outliers}{The maximum number of outliers, or \code{NULL} if not
 specified.}
+
+\item{xi_mcmc_prob}{A vector of four probablities, for the birth and death
+proposals for the outlier model \code{xi}, and the \code{eta_to_xi}, and 
+\code{xi_to_eta} proposals. The four probability should add up to one.}
 }
 \value{
 A list object representing the (maybe) updated changepoint model.
@@ -65,6 +69,6 @@ A list object representing the (maybe) updated changepoint model.
     the proposed model is accepted.}
 }
 \description{
-One MCMC iteration: propose to flip one random non-changepoint component of xi
+One MCMC iteration: propose to flip one random changepoint to an outlier
 }
 \keyword{internal}

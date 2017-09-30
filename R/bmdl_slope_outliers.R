@@ -5,10 +5,17 @@
 #'
 #' Changes in both mean and linear trend, which permitting a global seasonal
 #' mean and AR(p) errors.
+#' 
+#' Different types of proposals may have different probablities of being used:
+#' see the arguments \code{eta_mcmc_prob} and \code{xi_mcmc_prob}. The entries
+#' of each of these probability vectors add up to one. If \code{detect_outliers
+#' == TRUE}, i.e., update of the outiler model \code{xi} is needed, then both
+#' probablity vectors will be multiplied by 0.5, so that the overall 
+#' probabilities add up to one.
 #'
 #' @inheritParams fit_eta
-#' @inheritParams eta_MH_flip
-#' @inheritParams xi_MH_flip
+#' @inheritParams eta_MH_birth
+#' @inheritParams xi_MH_birth
 #' @param dates The dates records are observed, a \code{POSIXlt} vector. It should
 #'   have the \code{mon} component for months, and the \code{year} component
 #'   for years. See also \code{\link{strptime}}.
@@ -29,6 +36,7 @@
 #'   \code{NULL} to randomly sample an initial model.
 #' @param track_time Logical, whether to show runtime on screen.
 #' @param detect_outliers Logical, whether to detect outliers. 
+#'   
 #' @return
 #' \item{best}{The optimal model which minimizes BMDL or MDL; a list representing
 #'   the model, which contains components: \code{eta}, \code{inference} (output
@@ -54,7 +62,9 @@ bmdl = function(x, dates, iter = 1e4, thin = max(1, iter / 1e3), weights = NULL,
                 scale_trend_design = 0.05, fit = 'marlik', penalty = 'bmdl',
                 nu = 5, kappa = 3, a = 1, b_eta = length(x), b_xi = length(x),
                 max_changes = NULL, max_outliers = NULL, start_eta = NULL, 
-                start_xi = NULL, track_time = TRUE, detect_outliers = TRUE){
+                start_xi = NULL, track_time = TRUE, detect_outliers = TRUE, 
+                eta_mcmc_prob = c(0.5, 0.3, 0.2), 
+                xi_mcmc_prob = c(0.4, 0.3, 0.2, 0.1)){
 
   ## Start time. To be used to compute runtime.
   t.start = proc.time();
@@ -82,7 +92,7 @@ bmdl = function(x, dates, iter = 1e4, thin = max(1, iter / 1e3), weights = NULL,
                  (dates$mon - dates$mon[1]) + 1;
 
       ## Fit a harnomic regression
-      hlm1 = harmonic_lm(x, k = k, time_ind = time_ind);
+      hlm1 = harmonic_lm(x = x, k = k, time_ind = time_ind);
       A = hlm1$x;
     }
   }
@@ -138,33 +148,39 @@ bmdl = function(x, dates, iter = 1e4, thin = max(1, iter / 1e3), weights = NULL,
     ## Update eta and/or xi
     if(detect_outliers){
       action = sample(c('eta_birth', 'eta_death', 'eta_swap', 'xi_birth', 
-                        'xi_death', 'eta_to_xi_flip'), 1, 
-                      prob = c(0.25, 0.15, 0.1, 0.25, 0.15, 0.1));
+                        'xi_death', 'eta_to_xi_flip', 'xi_to_etal_flip'), 1, 
+                      prob = c(eta_mcmc_prob, xi_mcmc_prob) * 0.5);
     } else {
       action = sample(c('eta_birth', 'eta_death', 'eta_swap'), 1, 
-                      prob = c(0.5, 0.3, 0.2), replace = TRUE);
+                      prob = eta_mcmc_prob, replace = TRUE);
     }
     
     ## Metropolis-Hastings update eta and/or xi
     if(action == 'eta_birth')
       current = eta_MH_birth(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
-                            b_xi, scale_trend_design, weights, max_changes);
+                            b_xi, scale_trend_design, weights, max_changes, 
+                            eta_mcmc_prob);
     if(action == 'eta_death')
       current = eta_MH_death(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
-                             b_xi, scale_trend_design, weights);
+                             b_xi, scale_trend_design, weights, eta_mcmc_prob);
     if(action == 'eta_swap')
       current = eta_MH_swap(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
                             b_xi, scale_trend_design, weights);
     if(action == 'xi_birth')
       current = xi_MH_birth(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
-                            b_xi, scale_trend_design, weights, max_outliers);
+                            b_xi, scale_trend_design, weights, max_outliers, 
+                            xi_mcmc_prob);
     if(action == 'xi_death')
       current = xi_MH_death(x, A, current, p, fit, penalty, nu, kappa, a, b_eta,
-                            b_xi, scale_trend_design, weights);
+                            b_xi, scale_trend_design, weights, xi_mcmc_prob);
     if(action == 'eta_to_xi_flip')
       current = eta_to_xi_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, 
                                   b_eta, b_xi, scale_trend_design, weights, 
-                                  max_outliers);
+                                  max_outliers, xi_mcmc_prob);
+    if(action == 'xi_to_eta_flip')
+      current = xi_to_eta_MH_flip(x, A, current, p, fit, penalty, nu, kappa, a, 
+                                  b_eta, b_xi, scale_trend_design, weights, 
+                                  max_changes, xi_mcmc_prob);
     
     if(sum(current$eta * current$xi) > 0){
       stop('Error: a time cannot be both a changepoint and an outlier.')
@@ -214,8 +230,10 @@ bmdl = function(x, dates, iter = 1e4, thin = max(1, iter / 1e3), weights = NULL,
                           start_eta = start_eta, start_xi = start_xi, 
                           track_time = track_time, weights = weights,
                           scale_trend_design = scale_trend_design, 
-                          max_changes = max_changes, max_outliers = max_outliers
-                          );
+                          max_changes = max_changes, max_outliers = max_outliers,
+                          detect_outliers = detect_outliers, 
+                          eta_mcmc_prob = eta_mcmc_prob, 
+                          xi_mcmc_prob = xi_mcmc_prob);
 
   return( list(eta_mcmc = eta_mcmc, xi_mcmc = xi_mcmc, para_mcmc = para_mcmc,
                best = best, A = A, runtime = runtime,

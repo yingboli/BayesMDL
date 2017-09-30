@@ -6,7 +6,7 @@
 from 0 to 1}
 \usage{
 eta_MH_birth(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, b_xi,
-  scale_trend_design, weights, max_changes)
+  scale_trend_design, weights, max_changes, eta_mcmc_prob)
 }
 \arguments{
 \item{x}{The time series data, a numeric vector of length \code{n}.}
@@ -52,6 +52,10 @@ the \code{weights} argument in the function \code{lm}.}
 
 \item{max_changes}{The maximum number of changepoints, or \code{NULL} if not
 specified.}
+
+\item{eta_mcmc_prob}{A vector of three probablities, for the birth, death,
+and swap proposals for the changepoint model \code{eta}. The three 
+probabilities should add up to one.}
 }
 \value{
 A list object representing the (maybe) updated changepoint model.

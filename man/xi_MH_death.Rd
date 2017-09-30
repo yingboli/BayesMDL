@@ -2,11 +2,11 @@
 % Please edit documentation in R/mcmc_updates.R
 \name{xi_MH_death}
 \alias{xi_MH_death}
-\title{One MCMC iteration: propose to flip one random non-changepoint component of 
+\title{One MCMC iteration: propose to flip one random changepoint component of 
 xi from 1 to 0}
 \usage{
 xi_MH_death(x, A, current, p, fit, penalty, nu, kappa, a, b_eta, b_xi,
-  scale_trend_design, weights)
+  scale_trend_design, weights, xi_mcmc_prob)
 }
 \arguments{
 \item{x}{The time series data, a numeric vector of length \code{n}.}
@@ -50,6 +50,10 @@ Default is 1/50.}
 \item{weights}{A numeric vector of observation weights, defined the same as
 the \code{weights} argument in the function \code{lm}.}
 
+\item{xi_mcmc_prob}{A vector of four probablities, for the birth and death
+proposals for the outlier model \code{xi}, and the \code{eta_to_xi}, and 
+\code{xi_to_eta} proposals. The four probability should add up to one.}
+
 \item{max_outliers}{The maximum number of outliers, or \code{NULL} if not
 specified.}
 }
@@ -66,7 +70,7 @@ A list object representing the (maybe) updated changepoint model.
     the proposed model is accepted.}
 }
 \description{
-One MCMC iteration: propose to flip one random non-changepoint component of 
+One MCMC iteration: propose to flip one random changepoint component of 
 xi from 1 to 0
 }
 \keyword{internal}

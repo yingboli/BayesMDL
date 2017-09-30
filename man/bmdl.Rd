@@ -9,7 +9,8 @@ bmdl(x, dates, iter = 10000, thin = max(1, iter/1000), weights = NULL,
   scale_trend_design = 0.05, fit = "marlik", penalty = "bmdl", nu = 5,
   kappa = 3, a = 1, b_eta = length(x), b_xi = length(x),
   max_changes = NULL, max_outliers = NULL, start_eta = NULL,
-  start_xi = NULL, track_time = TRUE, detect_outliers = TRUE)
+  start_xi = NULL, track_time = TRUE, detect_outliers = TRUE,
+  eta_mcmc_prob = c(0.5, 0.3, 0.2), xi_mcmc_prob = c(0.4, 0.3, 0.2, 0.1))
 }
 \arguments{
 \item{x}{The time series data, a numeric vector of length \code{n}.}
@@ -80,6 +81,14 @@ specified.}
 \item{track_time}{Logical, whether to show runtime on screen.}
 
 \item{detect_outliers}{Logical, whether to detect outliers.}
+
+\item{eta_mcmc_prob}{A vector of three probablities, for the birth, death,
+and swap proposals for the changepoint model \code{eta}. The three 
+probabilities should add up to one.}
+
+\item{xi_mcmc_prob}{A vector of four probablities, for the birth and death
+proposals for the outlier model \code{xi}, and the \code{eta_to_xi}, and 
+\code{xi_to_eta} proposals. The four probability should add up to one.}
 }
 \value{
 \item{best}{The optimal model which minimizes BMDL or MDL; a list representing
@@ -99,5 +108,13 @@ specified.}
 \description{
 Changes in both mean and linear trend, which permitting a global seasonal
 mean and AR(p) errors.
+}
+\details{
+Different types of proposals may have different probablities of being used:
+see the arguments \code{eta_mcmc_prob} and \code{xi_mcmc_prob}. The entries
+of each of these probability vectors add up to one. If \code{detect_outliers
+== TRUE}, i.e., update of the outiler model \code{xi} is needed, then both
+probablity vectors will be multiplied by 0.5, so that the overall 
+probabilities add up to one.
 }
 \keyword{internal}
