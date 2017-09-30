@@ -6,6 +6,12 @@
 #'
 #' Compute the objective function of the model, i.e., log of posterior proablity
 #' for BMDL, or log MDL, and estimate model parameters.
+#' 
+#' If the data is constant or piecewise constant, then when the residuals of 
+#' the linear model \code{X ~ cbind(A, D)} are all zero, the we set all 
+#' \code{phi} to zero, and change the argument to \code{fit = 'lik'}. In this 
+#' case, the estimate of \code{sigmasq} is zero. So the output \code{bmdl}
+#' does not include the \code{(n - p) / 2 * log(sigmasq)} term.
 #'
 #' @param x The time series data, a numeric vector of length \code{n}.
 #' @param A The design matrix for the nuisance coefficients in the linear model.
@@ -70,18 +76,30 @@ fit_eta = function(x, A, eta, xi, p = 2, fit = 'marlik', penalty = 'bmdl',
   ###### Compute the Yule-Walker estimate of phi ######
   ## Linear model residuals
   y = lm(x ~ cbind(A, D) - 1, weights = weights)$res;
+  
+  ## For elements in y that are smaller than the machine precision, set them to zero
+  y[abs(y) < .Machine$double.eps] = 0;
 
   ## If AR, not independent, compute phi
-  phi = NULL;
-  if(p > 0){
-    gamma = rep(NA, p + 1); ## gamma_hat of lag h: h = 0, 1, ..., p
-    for(h in 0:p){
-      gamma[h + 1] = sum(c(y, rep(0, h)) * c(rep(0, h), y)) / n;
+  if(all(y == 0)){
+    phi = NULL;
+    if(p > 0){
+      phi = rep(0, p);
     }
-    phi = solve(matrix(gamma[abs(outer(1:p, 1:p, '-')) + 1], nrow = p), gamma[-1]);
+    ## Also change the argument fit to 'lik'
+    fit = 'lik';
+    
+  } else {
+    phi = NULL;
+    if(p > 0){
+      gamma = rep(NA, p + 1); ## gamma_hat of lag h: h = 0, 1, ..., p
+      for(h in 0:p){
+        gamma[h + 1] = sum(c(y, rep(0, h)) * c(rep(0, h), y)) / n;
+      }
+      phi = solve(matrix(gamma[abs(outer(1:p, 1:p, '-')) + 1], nrow = p), gamma[-1]);
+    }
   }
-
-
+  
   ###### Compute Ahat, Xhat, and Dhat ######
   Ahat = as.matrix(A[(p + 1):n, ]);
   xhat = x[(p + 1):n];
@@ -129,18 +147,29 @@ fit_eta = function(x, A, eta, xi, p = 2, fit = 'marlik', penalty = 'bmdl',
   }
 
   sigmasq = c((XtBX - t(AtBX) %*% s) / (n - p));
-
+  ## Check if sigmasq is actually zero
+  if(abs(sigmasq) < .Machine$double.eps){
+    sigmasq = 0;
+  }  
+    
   ## Conditional posterior covariance of mu: sigmasq * inv(Dhat' Dhat + I / nu)
   cov.mu = solve(t(Dhat) %*% Dhat + diag(ncol(D)) / nu) * sigmasq;
 
-  if(fit == 'marlik')
-    mdl.data = (n - p) / 2 * log(sigmasq) + ncol(D) / 2 * log(nu) +
-               sum(log(tmp$d^2 + 1 / nu)) / 2;
-  if(fit == 'lik')
-    mdl.data = (n - p) / 2 * log(sigmasq) + sum(log(seg_lengths[-1])) / 2 +
-               sum(log(seg_lengths)) / 2;
-
   ###### Compute bmdl (i.e., log_plik) #####
+  if(sigmasq == 0){ ## If sigmasq is zero; in this case, bmdl = -Inf
+    if(fit == 'marlik')
+      mdl.data = ncol(D) / 2 * log(nu) + sum(log(tmp$d^2 + 1 / nu)) / 2;
+    if(fit == 'lik')
+      mdl.data = sum(log(seg_lengths[-1])) / 2 + sum(log(seg_lengths)) / 2;
+  } else { ## If sigmasq is positive
+    if(fit == 'marlik')
+      mdl.data = (n - p) / 2 * log(sigmasq) + ncol(D) / 2 * log(nu) +
+        sum(log(tmp$d^2 + 1 / nu)) / 2;
+    if(fit == 'lik')
+      mdl.data = (n - p) / 2 * log(sigmasq) + sum(log(seg_lengths[-1])) / 2 +
+        sum(log(seg_lengths)) / 2;
+  }
+
   if(penalty == 'bmdl')
     bmdl = mdl.data - lgamma(a + m) - lgamma(b_eta + n - p - m) - lgamma(a + l) -
            lgamma(b_xi + n - p - l);

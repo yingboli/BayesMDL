@@ -64,4 +64,11 @@ the \code{weights} argument in the function \code{lm}.}
 Compute the objective function of the model, i.e., log of posterior proablity
 for BMDL, or log MDL, and estimate model parameters.
 }
+\details{
+If the data is constant or piecewise constant, then when the residuals of 
+the linear model \code{X ~ cbind(A, D)} are all zero, the we set all 
+\code{phi} to zero, and change the argument to \code{fit = 'lik'}. In this 
+case, the estimate of \code{sigmasq} is zero. So the output \code{bmdl}
+does not include the \code{(n - p) / 2 * log(sigmasq)} term.
+}
 \keyword{internal}
