@@ -8,7 +8,7 @@ Description: This package implements the Bayesian MDL Multiple Changepoint
   Detection methods, which can be applied to univariate and bivariate time series
   data and can accommodate metadata if exist. It can detect change in series means,
   and also linear slopes.
-License: GPL(>= 2)
+License: MIT + file LICENSE
 Depends: R (>= 2.14.0)
 Imports: graphics,
          grDevices,
