@@ -166,7 +166,7 @@ bmdl.eta = function(X, month, eta, meta, p, fit, penalty, nu, a, b1, b2, period)
   	mdl = mdl.data;
 
   if(penalty == 'BIC')
-    mdl = (N - p) / 2 * log(sigmasq) + m / 2 * log(N - p);
+    mdl = (N - p) / 2 * log(sigmasq) + m * log(N - p);
 
   ## return list "inference"
   return( list(mdl = c(mdl), phi = phi, sigmasq = c(sigmasq), mu = c(mu), s = c(s), cov.mu = cov.mu) );
